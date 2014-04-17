@@ -3,10 +3,11 @@
   "preferGlobal": "true",
   "version": "0.0.1",
   "author": "Sharon (Sean) Rolel",
+  "description": "DependencyLanguage JavaScript and Shade in HTML implementation",
   "repository": {},
   "keywords": [],
   "dependencies": {
-    "express": "~3.4.8",
+    "express": "~3.4.8"
   },
   "engine": {
     "node": ">=0.10"
