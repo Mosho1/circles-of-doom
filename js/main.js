@@ -10,9 +10,12 @@ var enemies = [];
 var explosions = [];
 var isPaused = false;
 var terrainPattern;
-var gameTime = 0;
+var firePattern;
+var gameTime = 1000;
 var lastTime = 0;
 var enemySpeed = 100;
+var circleSpd = 5;
+var circleAcc = -0.1;
 
 function distance(x1, y1, x2, y2) {
 
@@ -39,8 +42,11 @@ function drawCircle(x,y,r,start,end) {
   start = start || 0;
   end = end || Math.PI * 2;
   ctx.beginPath();
+  ctx.lineWidth=2;
   ctx.arc(x, y, r, start, end);
+  ctx.strokeStyle = firePattern;
   ctx.stroke();
+
 }
 
 
@@ -253,6 +259,7 @@ function init() {
   HEIGHT = $("#canvas").height()
   console.log(resources.get('img/terrain.png'))
   terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
+  firePattern = ctx.createPattern(resources.get('img/fire.png'), 'repeat');
   lastTime = Date.now();
   requestAnimationFrame(drawNextFrame);
 }
@@ -263,12 +270,12 @@ function onClick(evt) {
     circles.forEach(function (c, ind) {
        dist = (c.x - evt.clientX-5) * (c.x - evt.clientX-5) + (c.y -  evt.clientY-5) * (c.y -  evt.clientY-5);  
        if (c.r * c.r > dist) {
-         if (c.speed < 1) c.speed = 1; 
+         if (c.speed < circleSpd/2) c.speed = circleSpd/2; 
          innerClick = true;
        }
     })
     if (!innerClick) {
-      circle = {x: evt.clientX-5, y: evt.clientY-5, r: 1, speed: 3, acceleration: -0.05, pnts: [], ngls: [], inner: false}
+      circle = {x: evt.clientX-5, y: evt.clientY-5, r: 1, speed: circleSpd, acceleration: circleAcc, pnts: [], ngls: [], inner: false}
       circles.push(circle);
       
     }
@@ -292,6 +299,7 @@ $(document).keyup(freeze);
 
 resources.load([
     'img/sprites.png',
-    'img/terrain.png'
+    'img/terrain.png',
+    'img/fire.png'
 ]);
 resources.onReady(init);
