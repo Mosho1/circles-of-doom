@@ -5,6 +5,7 @@ var dy = 4;
 var ctx;
 var WIDTH; 
 var HEIGHT;
+var frame;
 var circles = [];
 var enemies = [];
 var explosions = [];
@@ -119,12 +120,12 @@ function getAngles(circle) {
 
     // Update all the enemies
     for(var i=0; i<enemies.length; i++) {
-        enemies[i].pos[0] += enemySpeed * dt * enemies[i].direction.x;
-        enemies[i].pos[1] += enemySpeed * dt * enemies[i].direction.y;
+        enemies[i].pos.x += enemySpeed * dt * enemies[i].direction.x;
+        enemies[i].pos.y += enemySpeed * dt * enemies[i].direction.y;
         enemies[i].sprite.update(dt);
 
         // Remove if offscreen
-        if(enemies[i].pos[0] < 0 || enemies[i].pos[0] > WIDTH || enemies[i].pos[1] < 0 || enemies[i].pos[1] > HEIGHT  ) {
+        if(enemies[i].pos.x < 0 || enemies[i].pos.x > WIDTH || enemies[i].pos.y < 0 || enemies[i].pos.y > HEIGHT  ) {
             enemies.splice(i, 1);
             i--;
         }
@@ -147,7 +148,7 @@ function collides(x1, y1, x2, y2, r) {
 }
 
 function boxCollides(pos, size, pos2, rad) {
-    return collides(pos[0], pos[1],
+    return collides(pos.x, pos.y,
                     pos2[0], pos2[1],
                     rad);
 }
@@ -157,7 +158,7 @@ function checkCollisions() {
     
     // Run collision detection for all enemies and bullets
     for(var i=0; i<enemies.length; i++) {
-        var pos = [enemies[i].pos[0] - enemies[i].center.x, enemies[i].pos[1] - enemies[i].center.y];
+        var pos = enemies[i].pos.sub(enemies[i].center);
         var size = enemies[i].sprite.size;
 
         for(var j=0; j<circles.length; j++) {
@@ -200,9 +201,9 @@ function update(dt) {
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
     if(Math.random() < 1 - Math.pow(.993, gameTime)) {
-        var t = Math.random() * (HEIGHT*2 + WIDTH*2);
-        var pos = t < HEIGHT + WIDTH ? t < HEIGHT ? [t, 0] : [0, t - WIDTH] : t < HEIGHT*2 + WIDTH ? [t - HEIGHT*2, HEIGHT] : [0, t - WIDTH*2 - HEIGHT],
-            direction = (new Vector(WIDTH/2 - pos[0], HEIGHT/2 - pos[1])).normalize(),
+        var t = Math.random() * (HEIGHT*2 + WIDTH*2),
+            pos = t < HEIGHT + WIDTH ? t < HEIGHT ? new Vector(t, 0) : new Vector(0, t - WIDTH) : t < HEIGHT*2 + WIDTH ? new Vector(t - HEIGHT*2, HEIGHT) : new Vector(0, t - WIDTH*2 - HEIGHT),
+            direction = (new Vector(WIDTH/2, HEIGHT/2)).sub(pos).normalize(),
             angle = Math.atan(direction.y/direction.x) + (direction.x < 0 ? 0 : Math.PI),
             sprite = new Sprite('img/sprites.png', [0, 78], [80, 39],
                                6, [0, 1, 2, 3, 2, 1]),
@@ -216,6 +217,7 @@ function update(dt) {
             angle: angle,
             sprite: sprite
         });
+
 
     }
 
@@ -238,7 +240,7 @@ function renderEntities(list) {
 
 function renderEntity(entity) {
     ctx.save();
-    ctx.translate(entity.pos[0], entity.pos[1]);
+    ctx.translate(entity.pos.x, entity.pos.y);
     ctx.rotate(entity.angle);
     entity.sprite.render(ctx);
     ctx.restore();
@@ -272,12 +274,11 @@ function init() {
   $('#canvas').click(onClick);
   posX = $('#canvas').offset().left;
   posY = $('#canvas').offset().top;
-  console.log(posX, posY);
   ctx = $('#canvas')[0].getContext("2d");
   scoreEl = $('#score');
   WIDTH = $("#canvas").width()
   HEIGHT = $("#canvas").height()
-  console.log(resources.get('img/terrain.png'))
+  frame = new Vector(WIDTH, HEIGHT);
   terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
   firePattern = ctx.createPattern(resources.get('img/fire.png'), 'repeat');
   lastTime = Date.now();
