@@ -124,7 +124,7 @@ function getAngles(circle) {
         enemies[i].sprite.update(dt);
 
         // Remove if offscreen
-        if(enemies[i].pos[0] + enemies[i].sprite.size[0] < 0) {
+        if(enemies[i].pos[0] < 0 || enemies[i].pos[0] > WIDTH || enemies[i].pos[1] < 0 || enemies[i].pos[1] > HEIGHT  ) {
             enemies.splice(i, 1);
             i--;
         }
@@ -147,7 +147,7 @@ function collides(x1, y1, x2, y2, r) {
 }
 
 function boxCollides(pos, size, pos2, rad) {
-    return collides(pos[0] + size[0]/2, pos[1] + size[1]/2,
+    return collides(pos[0], pos[1],
                     pos2[0], pos2[1],
                     rad);
 }
@@ -157,7 +157,7 @@ function checkCollisions() {
     
     // Run collision detection for all enemies and bullets
     for(var i=0; i<enemies.length; i++) {
-        var pos = enemies[i].pos;
+        var pos = [enemies[i].pos[0] - enemies[i].center.x, enemies[i].pos[1] - enemies[i].center.y];
         var size = enemies[i].sprite.size;
 
         for(var j=0; j<circles.length; j++) {
@@ -200,17 +200,23 @@ function update(dt) {
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
     if(Math.random() < 1 - Math.pow(.993, gameTime)) {
-        var pos = [canvas.width,
-                  Math.random() * (canvas.height - 39)],
-            direction = (new Vector(WIDTH/2 - pos[0], HEIGHT/2 - pos[1])).normalize();
-            console.log(direction);
+        var t = Math.random() * (HEIGHT*2 + WIDTH*2);
+        var pos = t < HEIGHT + WIDTH ? t < HEIGHT ? [t, 0] : [0, t - WIDTH] : t < HEIGHT*2 + WIDTH ? [t - HEIGHT*2, HEIGHT] : [0, t - WIDTH*2 - HEIGHT],
+            direction = (new Vector(WIDTH/2 - pos[0], HEIGHT/2 - pos[1])).normalize(),
+            angle = Math.atan(direction.y/direction.x) + (direction.x < 0 ? 0 : Math.PI),
+            sprite = new Sprite('img/sprites.png', [0, 78], [80, 39],
+                               6, [0, 1, 2, 3, 2, 1]),
+            center = new Vector(sprite.size[0] * direction.x / 2, sprite.size[1] * direction.y / 2);
+            
 
         enemies.push({
             pos: pos,
+            center: center,
             direction: direction,
-            sprite: new Sprite('img/sprites.png', [0, 78], [80, 39],
-                               6, [0, 1, 2, 3, 2, 1])
+            angle: angle,
+            sprite: sprite
         });
+
     }
 
     checkCollisions();
@@ -233,6 +239,7 @@ function renderEntities(list) {
 function renderEntity(entity) {
     ctx.save();
     ctx.translate(entity.pos[0], entity.pos[1]);
+    ctx.rotate(entity.angle);
     entity.sprite.render(ctx);
     ctx.restore();
 }
