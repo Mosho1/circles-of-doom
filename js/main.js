@@ -9,6 +9,7 @@ var frame;
 var circles = [];
 var enemies = [];
 var explosions = [];
+var base = [];
 var isPaused = false;
 var terrainPattern;
 var firePattern;
@@ -143,20 +144,70 @@ function getAngles(circle) {
     }
 }
 
-function collides(x1, y1, x2, y2, r) {
+function collidesR(x1, y1, x2, y2, r) {
     return r * r > distance(x1,y1,x2,y2) ;
 }
 
-function boxCollides(pos, size, pos2, rad) {
+function collides(x, y, r, b, x2, y2, r2, b2) {
+    return !(r <= x2 || x > r2 ||
+             b <= y2 || y > b2);
+}
+
+function boxCollides(pos, size, pos2, size2) {
     return collides(pos.x, pos.y,
+                    pos.x + size[0], pos.y + size[1],
+                    pos2.x, pos2.y,
+                    pos2.x + size2[0], pos2.y + size2[1]);
+}
+
+function circleCollides(pos, size, pos2, rad) {
+    return collidesR(pos.x, pos.y,
                     pos2[0], pos2[1],
                     rad);
 }
 
+function destroyEntity(pos, i) {
+
+   // Remove the enemy
+        enemies.splice(i, 1);
+        // Add an explosion
+        explosions.push({
+            pos: pos,
+            sprite: new Sprite('img/sprites.png',
+                               [0, 117],
+                               [39, 39],
+                               16,
+                               [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                               null,
+                               true)
+        });
+}
+
+var checkCollision = {
+  circle: function(pos, size, pos2, rad, i) {
+    if(circleCollides(pos, size, pos2, rad)) {
+        // Remove the enemy
+        destroyEntity(pos, i);
+        // Add score
+        score += 100;
+        return true;
+    }
+  },
+  box: function(pos, size, pos2, size2, i) {
+    if(boxCollides(pos, size, pos2, size2)) {
+        // Remove the enemy
+        destroyEntity(pos, i);
+        // Add score
+        score -= 100;
+        return true;
+    }
+  }
+
+}
+
 function checkCollisions() {
 
-    
-    // Run collision detection for all enemies and bullets
+    // Run collision detection for all enemies and circles
     for(var i=0; i<enemies.length; i++) {
         var pos = enemies[i].pos.sub(enemies[i].center);
         var size = enemies[i].sprite.size;
@@ -165,31 +216,12 @@ function checkCollisions() {
             var pos2 = [circles[j].x, circles[j].y];
             var rad = circles[j].r;
 
-            if(boxCollides(pos, size, pos2, rad)) {
-                // Remove the enemy
-                enemies.splice(i, 1);
-                i--;
+            if (checkCollision.circle(pos, size, pos2, rad, i)) {i--; break;}
 
-                // Add score
-                score += 100;
-
-                // Add an explosion
-                explosions.push({
-                    pos: pos,
-                    sprite: new Sprite('img/sprites.png',
-                                       [0, 117],
-                                       [39, 39],
-                                       16,
-                                       [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-                                       null,
-                                       true)
-                });
-
-                // Remove the bullet and stop this iteration
-                //bullets.splice(j, 1);
-                break;
-            }
         }
+
+        //run collision detection for enemies and base
+        checkCollision.box(pos, size, base[0].pos.add(new Vector(100,100)), [base[0].sprite.size[0]/4, base[0].sprite.size[1]/4])
     }
 }
 
@@ -250,6 +282,8 @@ function render() {
   ctx.fillStyle = terrainPattern;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
+
+  renderEntities(base)
   renderCircles(circles);
   renderEntities(enemies);
   renderEntities(explosions);
@@ -281,6 +315,11 @@ function init() {
   frame = new Vector(WIDTH, HEIGHT);
   terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
   firePattern = ctx.createPattern(resources.get('img/fire.png'), 'repeat');
+  base.push({
+    pos: new Vector(WIDTH/2 - 110, HEIGHT/2 - 87.5),
+    sprite: new Sprite('img/base.gif', [35, 60], [220, 175] )
+  });
+
   lastTime = Date.now();
   requestAnimationFrame(drawNextFrame);
 }
@@ -322,6 +361,7 @@ $(document).keyup(freeze);
 resources.load([
     'img/sprites.png',
     'img/terrain.png',
-    'img/fire.png'
+    'img/fire.png',
+    'img/base.gif'
 ]);
 resources.onReady(init);

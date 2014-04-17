@@ -2,9 +2,15 @@
 (function () {		
 	function Vector(x, y, z)
     {
+    	if (x instanceof Vector) {
+    		this.x = x.x;
+    	    this.y = x.y;
+    	    this.z = x.z;
+    	} else {
 		this.x = x || 0;
 		this.y = y || 0;
 		this.z = z || 0;		
+		}
 	}
 
 	this.Vector = Vector;
@@ -17,16 +23,18 @@
 			return this;
 		},
 		add : function(v){
-			this.x += v.x;
-			this.y += v.y;
-			this.z += v.z;
-			return this;
+			var ret = new Vector(this);
+			ret.x += v.x;
+			ret.y += v.y;
+			ret.z += v.z;
+			return ret;
 		},
 		sub : function(v){
-			this.x -= v.x;
-			this.y -= v.y;
-			this.z -= v.z;
-			return this;
+			var ret = new Vector(this);
+			ret.x -= v.x;
+			ret.y -= v.y;
+			ret.z -= v.z;
+			return ret;
 		},
 		cross : function(v){
 			this.tx = this.x;
