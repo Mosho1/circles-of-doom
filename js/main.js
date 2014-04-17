@@ -11,11 +11,13 @@ var explosions = [];
 var isPaused = false;
 var terrainPattern;
 var firePattern;
-var gameTime = 1000;
+var gameTime = 0;
 var lastTime = 0;
 var enemySpeed = 100;
 var circleSpd = 5;
 var circleAcc = -0.1;
+var score = 0;
+var posX, posY;
 
 function distance(x1, y1, x2, y2) {
 
@@ -117,7 +119,8 @@ function getAngles(circle) {
 
     // Update all the enemies
     for(var i=0; i<enemies.length; i++) {
-        enemies[i].pos[0] -= enemySpeed * dt;
+        enemies[i].pos[0] += enemySpeed * dt * enemies[i].direction.x;
+        enemies[i].pos[1] += enemySpeed * dt * enemies[i].direction.y;
         enemies[i].sprite.update(dt);
 
         // Remove if offscreen
@@ -167,7 +170,7 @@ function checkCollisions() {
                 i--;
 
                 // Add score
-                //score += 100;
+                score += 100;
 
                 // Add an explosion
                 explosions.push({
@@ -197,9 +200,14 @@ function update(dt) {
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
     if(Math.random() < 1 - Math.pow(.993, gameTime)) {
-        enemies.push({
-            pos: [canvas.width,
+        var pos = [canvas.width,
                   Math.random() * (canvas.height - 39)],
+            direction = (new Vector(WIDTH/2 - pos[0], HEIGHT/2 - pos[1])).normalize();
+            console.log(direction);
+
+        enemies.push({
+            pos: pos,
+            direction: direction,
             sprite: new Sprite('img/sprites.png', [0, 78], [80, 39],
                                6, [0, 1, 2, 3, 2, 1])
         });
@@ -207,7 +215,7 @@ function update(dt) {
 
     checkCollisions();
 
-//    scoreEl.innerHTML = score;
+    scoreEl.text(score);
 };
 
 function renderCircles(circles) {
@@ -254,7 +262,12 @@ function drawNextFrame() {
 }
 
 function init() {
+  $('#canvas').click(onClick);
+  posX = $('#canvas').offset().left;
+  posY = $('#canvas').offset().top;
+  console.log(posX, posY);
   ctx = $('#canvas')[0].getContext("2d");
+  scoreEl = $('#score');
   WIDTH = $("#canvas").width()
   HEIGHT = $("#canvas").height()
   console.log(resources.get('img/terrain.png'))
@@ -266,16 +279,17 @@ function init() {
 
 function onClick(evt) {
   if (circles.length < 2) {
-    var innerClick = false, dist, circle;
+    var innerClick = false, dist, circle,
+        pX = evt.pageX-5-posX, pY = evt.pageY-5-posY; 
     circles.forEach(function (c, ind) {
-       dist = (c.x - evt.clientX-5) * (c.x - evt.clientX-5) + (c.y -  evt.clientY-5) * (c.y -  evt.clientY-5);  
+       dist = (c.x - pX) * (c.x - pX) + (c.y -  pY) * (c.y -  pY);  
        if (c.r * c.r > dist) {
          if (c.speed < circleSpd/2) c.speed = circleSpd/2; 
          innerClick = true;
        }
     })
     if (!innerClick) {
-      circle = {x: evt.clientX-5, y: evt.clientY-5, r: 1, speed: circleSpd, acceleration: circleAcc, pnts: [], ngls: [], inner: false}
+      circle = {x: pX, y: pY, r: 1, speed: circleSpd, acceleration: circleAcc, pnts: [], ngls: [], inner: false}
       circles.push(circle);
       
     }
@@ -283,7 +297,7 @@ function onClick(evt) {
   }
 }
 
-$(document).click(onClick);
+
 
 function freeze(evt) {
   if (evt.keyCode == 81) {
