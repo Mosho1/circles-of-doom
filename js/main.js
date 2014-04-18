@@ -15,11 +15,13 @@ var terrainPattern;
 var firePattern;
 var gameTime = 0;
 var lastTime = 0;
-var enemySpeed = 100;
+var enemySpeed = 50;
 var circleSpd = 5;
 var circleAcc = -0.1;
 var score = 0;
 var posX, posY;
+var grpId = 0;
+var gameOver = false;
 
 function distance(x1, y1, x2, y2) {
 
@@ -73,9 +75,11 @@ function updateCircles(circles) {
   });
   
 
-  circles.forEach(function (c1, ind1) {
-    circles.forEach(function (c2, ind2) {
-      if (ind1 < ind2) {
+  for (var i = 0; i < circles.length; i++) {
+    for (var j = 0; j < circles.length; j++) {
+      if (i < j) {
+        var c1 = circles[i], c2 = circles[j];
+        
         var slope = -(c1.x - c2.x)/(c1.y - c2.y),
             offset = ((c1.r * c1.r - c2.r * c2.r) - (c1.x * c1.x - c2.x * c2.x) - (c1.y *c1.y - c2.y * c2.y)) / (-2 * (c1.y - c2.y)),
             a = 1 + slope * slope,
@@ -83,28 +87,34 @@ function updateCircles(circles) {
             c = c1.x * c1.x + offset * offset - 2 * offset * c1.y + c1.y * c1.y - c1.r * c1.r,
         
             x1 = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a),
-            x2 = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a),
-        
-            y1 = slope * x1 + offset, 
-            y2 = slope * x2 + offset;
-        
+            x2 = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
 
-        if (c1.y - c2.y >= 0) {
-          c1.pnts = [[x1, y1], [x2, y2]];
-          c2.pnts = [[x2, y2], [x1, y1]]; 
-        } else {
-          c2.pnts = [[x1, y1], [x2, y2]];
-          c1.pnts = [[x2, y2], [x1, y1]]; 
-        }
-      
-        var dist = (c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y);
+        if (x1 && x2) { 
         
+          var y1 = slope * x1 + offset, 
+              y2 = slope * x2 + offset;
+          
+
+          if (c1.y - c2.y >= 0) {
+            c1.pnts = [[x1, y1], [x2, y2]];
+            c2.pnts = [[x2, y2], [x1, y1]]; 
+          } else {
+            c2.pnts = [[x1, y1], [x2, y2]];
+            c1.pnts = [[x2, y2], [x1, y1]]; 
+          }
+
           c1.ngls = [Math.PI - Math.atan2(c1.pnts[0][1] - c1.y, c1.x - c1.pnts[0][0]), Math.PI - Math.atan2(c1.pnts[1][1] - c1.y, c1.x - c1.pnts[1][0])];
           c2.ngls = [Math.PI - Math.atan2(c2.pnts[0][1] - c2.y, c2.x - c2.pnts[0][0]), Math.PI - Math.atan2(c2.pnts[1][1] - c2.y, c2.x - c2.pnts[1][0])];
-        
+
+          c1.group = c2.group = c1.group || c2.group || grpId++;
+
+        } else {
+          c1.ngls = c2.ngls = [];
+          c1.group = c2.group = null;
+        }
       }
-    })
-  });
+    }
+  };
   
   
 }
@@ -184,21 +194,23 @@ function destroyEntity(pos, i) {
 }
 
 var checkCollision = {
-  circle: function(pos, size, pos2, rad, i) {
+  circle: function(pos, size, pos2, rad, pnts, i) {
     if(circleCollides(pos, size, pos2, rad)) {
         // Remove the enemy
-        destroyEntity(pos, i);
+        if (i !== undefined)
+          destroyEntity(pos, i);
         // Add score
-        score += 100;
+        score += pnts;
         return true;
     }
   },
-  box: function(pos, size, pos2, size2, i) {
+  box: function(pos, size, pos2, size2, pnts, i) {
     if(boxCollides(pos, size, pos2, size2)) {
         // Remove the enemy
-        destroyEntity(pos, i);
+        if (i !== undefined)
+          destroyEntity(pos, i);
         // Add score
-        score -= 100;
+        score += pnts;
         return true;
     }
   }
@@ -206,22 +218,29 @@ var checkCollision = {
 }
 
 function checkCollisions() {
-
+    var i, j;
     // Run collision detection for all enemies and circles
-    for(var i=0; i<enemies.length; i++) {
+    for(i=0; i<enemies.length; i++) {
         var pos = enemies[i].pos.sub(enemies[i].center);
         var size = enemies[i].sprite.size;
 
-        for(var j=0; j<circles.length; j++) {
+        for(j=0; j<circles.length; j++) {
             var pos2 = [circles[j].x, circles[j].y];
             var rad = circles[j].r;
 
-            if (checkCollision.circle(pos, size, pos2, rad, i)) {i--; break;}
+            if (checkCollision.circle(pos, size, pos2, rad, 100, i)) {i--; break;}
 
         }
 
-        //run collision detection for enemies and base
-        checkCollision.box(pos, size, base[0].pos.add(new Vector(100,100)), [base[0].sprite.size[0]/4, base[0].sprite.size[1]/4])
+    //run collision detection for enemies and base
+    checkCollision.box(pos, size, base[0].pos.add(new Vector(100,100)), [base[0].sprite.size[0]/4, base[0].sprite.size[1]/4], -1000, i)
+
+    }
+
+    for(i = 0; i<circles.length; i++) {
+      var pos = [circles[i].x, circles[i].y];
+      var rad = circles[i].r;
+      checkCollision.circle(base[0].pos.add(new Vector(100,100)), [base[0].sprite.size[0]/4, base[0].sprite.size[1]/4], pos, rad, -1000)
     }
 }
 
@@ -259,9 +278,11 @@ function update(dt) {
 };
 
 function renderCircles(circles) {
-  circles.forEach(function (circle) {
-    drawCircle(circle.x, circle.y, circle.r, circle.ngls[+circle.inner], circle.ngls[+!circle.inner]);  
-  });
+  var c;
+  for (var i = 0; i < circles.length; i++) {
+    c = circles[i];
+    drawCircle(c.x, c.y, c.r, c.ngls[+c.inner], c.ngls[+!c.inner]);  
+  };
 }
 
 function renderEntities(list) {
@@ -297,11 +318,14 @@ function drawNextFrame() {
   update(dt);
   render();
 
+  if (score < 0)
+    gameOver = true;
 
   lastTime = now;
   
-  if (!isPaused)
+  if (!isPaused && !gameOver)
     requestAnimationFrame(drawNextFrame);
+  else if (!isPaused) scoreEl.text('Game over, noob');
 }
 
 function init() {
@@ -321,20 +345,30 @@ function init() {
   });
 
   lastTime = Date.now();
+
   requestAnimationFrame(drawNextFrame);
 }
 
 function onClick(evt) {
-  if (circles.length < 2) {
+  if (circles.length < 10) {
     var innerClick = false, dist, circle,
         pX = evt.pageX-5-posX, pY = evt.pageY-5-posY; 
-    circles.forEach(function (c, ind) {
+    for (var i = 0; i < circles.length; i++) {
+       c = circles[i];
        dist = (c.x - pX) * (c.x - pX) + (c.y -  pY) * (c.y -  pY);  
        if (c.r * c.r > dist) {
          if (c.speed < circleSpd/2) c.speed = circleSpd/2; 
+         if (c.group) {
+            for (var j = 0; j < circles.length; j++) {
+                c2 = circles[j];
+                if (c2.group === c.group && c2.speed < circleSpd/2)
+                   c2.speed = circleSpd/2; 
+            }
+
+         }
          innerClick = true;
        }
-    })
+    }
     if (!innerClick) {
       circle = {x: pX, y: pY, r: 1, speed: circleSpd, acceleration: circleAcc, pnts: [], ngls: [], inner: false}
       circles.push(circle);
