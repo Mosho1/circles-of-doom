@@ -18,7 +18,7 @@ var lastTime = 0;
 var enemySpeed = 50;
 var circleSpd = 5;
 var circleAcc = -0.1;
-var score = 0;
+var score = 45645654754;
 var posX, posY;
 var grpId = 0;
 var gameOver = false;
@@ -45,10 +45,13 @@ var linearScale = function(source, target) {
 
  
 function drawCircle(x,y,r,start,end) {
+
   start = start || 0;
   end = end || Math.PI * 2;
+
   ctx.beginPath();
   ctx.lineWidth=2;
+ // console.log(start,end);
   ctx.arc(x, y, r, start, end);
   ctx.strokeStyle = firePattern;
   ctx.stroke();
@@ -63,23 +66,28 @@ function clear() {
  
 function updateCircles(circles) {
 
-  circles.forEach(function (circle, ind) {
-    circle.r +=  circle.speed += circle.acceleration
+  var i, j, k, c, c1, c2;
+  for (i = 0; i < circles.length; i++) {
+    var c = circles[i];
+    c.ngls = [];
+    c.r +=  c.speed += c.acceleration
     
-    if (circle.r < 0) {
-      circles.splice(ind, 1);
+    if (c.r < 0) {
+      circles.splice(i, 1);
       return;
     }
 
       
-  });
+  };
   
 
-  for (var i = 0; i < circles.length; i++) {
-    for (var j = 0; j < circles.length; j++) {
+  for (i = 0; i < circles.length; i++) {
+    var c1 = circles[i];
+    
+    for (j = 0; j < circles.length; j++) {
       if (i < j) {
-        var c1 = circles[i], c2 = circles[j];
-        
+
+        var c2 = circles[j];
         var slope = -(c1.x - c2.x)/(c1.y - c2.y),
             offset = ((c1.r * c1.r - c2.r * c2.r) - (c1.x * c1.x - c2.x * c2.x) - (c1.y *c1.y - c2.y * c2.y)) / (-2 * (c1.y - c2.y)),
             a = 1 + slope * slope,
@@ -103,27 +111,50 @@ function updateCircles(circles) {
             c1.pnts = [[x2, y2], [x1, y1]]; 
           }
 
-          c1.ngls = [Math.PI - Math.atan2(c1.pnts[0][1] - c1.y, c1.x - c1.pnts[0][0]), Math.PI - Math.atan2(c1.pnts[1][1] - c1.y, c1.x - c1.pnts[1][0])];
-          c2.ngls = [Math.PI - Math.atan2(c2.pnts[0][1] - c2.y, c2.x - c2.pnts[0][0]), Math.PI - Math.atan2(c2.pnts[1][1] - c2.y, c2.x - c2.pnts[1][0])];
+          c1.ngls.push([Math.PI - Math.atan2(c1.pnts[0][1] - c1.y, c1.x - c1.pnts[0][0]), Math.PI - Math.atan2(c1.pnts[1][1] - c1.y, c1.x - c1.pnts[1][0])]);
+          c2.ngls.push([Math.PI - Math.atan2(c2.pnts[0][1] - c2.y, c2.x - c2.pnts[0][0]), Math.PI - Math.atan2(c2.pnts[1][1] - c2.y, c2.x - c2.pnts[1][0])]);
+
+         
 
           c1.group = c2.group = c1.group || c2.group || grpId++;
 
-        } else {
-          c1.ngls = c2.ngls = [];
+        } else { 
           c1.group = c2.group = null;
         }
       }
     }
   };
+
+  for (i = 0; i < circles.length; i++) {
+    c = circles[i];
+    if (c.ngls.length > 1) {
+      c.ngls.sort(function(a, b) { return a[0] - b[0]; }) 
+      for (j = 0; j < c.ngls.length; j++) {
+        for (k = 0; k < c.ngls.length; k++) {
+          if (j !== k) {
+            var ng1 = c.ngls[j];
+            var ng2 = c.ngls[k];
+            if (ng1 && ng2) {
+              if (isBetween(ng1[1], ng2[1], ng1[0]) && isBetween(ng1[1], ng2[0], ng1[0])) {
+                  c.ngls.splice(k, 1);
+                  j = 0;
+                  k = 0;
+                } 
+              if (isBetween(ng1[0], ng2[1], ng1[1]) && !isBetween(ng1[0], ng2[0], ng1[1])) {
+                  c.ngls.splice(j, 1, [ng1[0], ng2[1]]);
+                  c.ngls.splice(k, 1);
+                  k = 0;
+                  j = 0;
+                }
+            }        
+          }
+        }
+      }
+    }   
+  };
   
   
 }
-
-
-
-function getAngles(circle) {
-   return circle.ngls = circle.pnts.map(function(pnt){ return Math.atan2(pnt[0] - circle.x, circle.y - pnt[1])});  
- }
 
  function updateEntities(dt) {
 
@@ -253,14 +284,13 @@ function update(dt) {
     // equation: 1-.993^gameTime
     if(Math.random() < 1 - Math.pow(.993, gameTime)) {
         var t = Math.random() * (HEIGHT*2 + WIDTH*2),
-            pos = t < HEIGHT + WIDTH ? t < HEIGHT ? new Vector(t, 0) : new Vector(0, t - WIDTH) : t < HEIGHT*2 + WIDTH ? new Vector(t - HEIGHT*2, HEIGHT) : new Vector(0, t - WIDTH*2 - HEIGHT),
+            pos = t < HEIGHT + WIDTH ? t < HEIGHT ? new Vector(t, 0) : new Vector(0, t - WIDTH) : t < HEIGHT*2 + WIDTH ? new Vector(t - HEIGHT*2, HEIGHT) : new Vector(WIDTH, t - WIDTH*2 - HEIGHT),
             direction = (new Vector(WIDTH/2, HEIGHT/2)).sub(pos).normalize(),
             angle = Math.atan(direction.y/direction.x) + (direction.x < 0 ? 0 : Math.PI),
             sprite = new Sprite('img/sprites.png', [0, 78], [80, 39],
                                6, [0, 1, 2, 3, 2, 1]),
             center = new Vector(sprite.size[0] * direction.x / 2, sprite.size[1] * direction.y / 2);
-            
-
+         
         enemies.push({
             pos: pos,
             center: center,
@@ -277,11 +307,24 @@ function update(dt) {
     scoreEl.text(score);
 };
 
+//is b between a and c on a circle going clockwise where (R,0) is 0 degrees
+function isBetween(a, b, c) {
+  return (b < c && (c < a || a < b)) || (c < a && b > a);
+}
+
 function renderCircles(circles) {
-  var c;
-  for (var i = 0; i < circles.length; i++) {
+  var c, i, j, ngl;
+  for (i = 0; i < circles.length; i++) {
     c = circles[i];
-    drawCircle(c.x, c.y, c.r, c.ngls[+c.inner], c.ngls[+!c.inner]);  
+    if (c.ngls.length) {
+      for (j = 0; j < c.ngls.length; j++) {
+        var ng = c.ngls[j],
+            ng2 = c.ngls[(j + 1) % c.ngls.length][1];
+        drawCircle(c.x, c.y, c.r, ng[0], ng2);  
+      }
+    } else {
+      drawCircle(c.x, c.y, c.r);  
+    }
   };
 }
 
