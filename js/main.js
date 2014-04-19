@@ -18,7 +18,7 @@ var lastTime = 0;
 var enemySpeed = 50;
 var circleSpd = 5;
 var circleAcc = -0.1;
-var score = 45645654754;
+var score = 0;
 var posX, posY;
 var grpId = 0;
 var gameOver = false;
