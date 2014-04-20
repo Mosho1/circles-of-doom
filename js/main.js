@@ -411,7 +411,7 @@ function drawNextFrame() {
   
   if (!isPaused && !gameOver)
     requestAnimationFrame(drawNextFrame);
-  else if (!isPaused) scoreEl.text('Game over, noob');
+  else if (!isPaused) scoreEl.innerHTML = 'Game over, noob';
 }
 
 function createBase() {
