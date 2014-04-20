@@ -160,11 +160,12 @@ function updateCircles(circles) {
             var ng1 = c.ngls[j];
             var ng2 = c.ngls[k];
             if (ng1 && ng2) {
-              if (isBetween(ng1[1], ng2[1], ng1[0]) && isBetween(ng1[1], ng2[0], ng1[0])) {
+              if (isBetween(ng1[0], ng2[1], ng1[1]) && isBetween(ng1[0], ng2[0], ng1[1]) && isBetween(ng2[0], ng2[1], ng1[1])) {
                   c.ngls.splice(k, 1);
                   j = 0;
                   k = 0;
                 } 
+
               if (isBetween(ng1[0], ng2[1], ng1[1]) && !isBetween(ng1[0], ng2[0], ng1[1])) {
                   c.ngls.splice(j, 1, [ng1[0], ng2[1]]);
                   c.ngls.splice(k, 1);
@@ -249,6 +250,9 @@ function destroyEntity(pos, i) {
             pos: pos.sub(new Vector(sprite.size[0]/2, sprite.size[1]/2)),
             sprite: sprite
         });
+
+        //circle = {x: pos.x, y: pos.y, r: 1, speed: circleSpd*0.7, acceleration: circleAcc, pnts: [], ngls: [], inner: false, id: grpId++, clicks: 0}
+      //circles.push(circle);
 }
 
 var checkCollision = {
@@ -310,7 +314,7 @@ function update(dt) {
 
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
-    if(Math.random() < 0.5 *  (1 - Math.pow(0.996, gameTime))) {
+    if(Math.random() < 1 *  (1 - Math.pow(0.993, gameTime))) {
         var t = Math.random() * (HEIGHT*2 + WIDTH*2),
             pos = t < HEIGHT + WIDTH ? t < HEIGHT ? new Vector(t, 0) : new Vector(0, t - WIDTH) : t < HEIGHT*2 + WIDTH ? new Vector(t - HEIGHT*2, HEIGHT) : new Vector(WIDTH, t - WIDTH*2 - HEIGHT),
             direction = (new Vector(WIDTH/2, HEIGHT/2)).sub(pos).normalize(),
@@ -333,7 +337,7 @@ function update(dt) {
 
     checkCollisions();
 
-    scoreEl.text(score);
+    scoreEl.innerHTML = score;
 };
 
 //is b between a and c on a circle going clockwise where (R,0) is 0 degrees
@@ -386,10 +390,11 @@ function render() {
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
 
-  renderEntities(base);
+  
   renderCircles(circles);
   renderEntities(enemies);
   renderEntities(explosions);
+  renderEntities(base);
 }
 
 function drawNextFrame() {
@@ -419,13 +424,14 @@ function createBase() {
 }
 
 function init() {
-  $('#canvas').click(onClick);
-  posX = $('#canvas').offset().left;
-  posY = $('#canvas').offset().top;
-  ctx = $('#canvas')[0].getContext("2d");
-  scoreEl = $('#score');
-  WIDTH = $("#canvas").width()
-  HEIGHT = $("#canvas").height()
+  canvas = document.getElementById('canvas');
+  canvas.addEventListener('click', onClick);
+  posX = canvas.offsetLeft;
+  posY = canvas.offsetTop;
+  ctx = canvas.getContext("2d");
+  scoreEl = document.getElementById('score');
+  WIDTH = canvas.width;
+  HEIGHT = canvas.height
   frame = new Vector(WIDTH, HEIGHT);
   terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
   firePattern = ctx.createPattern(resources.get('img/lightning.jpg'), 'repeat');
@@ -473,16 +479,14 @@ function freeze(evt) {
   }
 }
 
-$(document).keyup(freeze);
+document.addEventListener("keyup", freeze);
  
-//$().ready(init);
-
 resources.load([
     'img/sprites.png',
     'img/terrain.png',
     'img/fire.png',
+    'img/fire.jpg',
     'img/base.gif',
-    'img/earth.jpg',
     'img/earth.png',
     'img/lightning.jpg'
 ]);
