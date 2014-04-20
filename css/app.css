@@ -5,9 +5,12 @@ html, body {
 }
 
 canvas {
-    margin: 50px;
-   
+    margin:50px;
 
+    
+   
+    
+    
 }
 
 .wrapper {
@@ -17,15 +20,15 @@ canvas {
 }
 
 #instructions {
-    margin:10px;
-    float: left;
+    float:left;
+    margin:20px;
+
     font-family: sans-serif;
     color: #757575;
-    display: block;
 }
 
 #score {
-    margin: 20px;
+    margin:100px;
     font-family: sans-serif;
     float: right;
     color: white;
