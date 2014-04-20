@@ -138,7 +138,6 @@ function updateCircles(circles) {
       circleGrps.push(circles[i].group)
     }    
   }
-console.log(circleGrps);
   for (i = 0; i < circles.length; i++) {
 
     c = circles[i];
@@ -243,8 +242,10 @@ var checkCollision = {
   circle: function(pos, size, pos2, rad, pnts, i) {
     if(circleCollides(pos, size, pos2, rad)) {
         // Remove the enemy
-        if (i !== undefined)
-          destroyEntity(pos, i);
+        if (i !== undefined) {
+          destroyEntity(pos , i);
+          console.log(size);
+        }
         // Add score
         score += pnts;
         return true;
