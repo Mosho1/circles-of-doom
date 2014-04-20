@@ -19,7 +19,7 @@ var enemySpeed = 20;
 var circleSpd = 3;
 var circleAcc = -0.05;
 var maxAcc = -0.025;
-var score = 124513253215252;
+var score = 0;
 var posX, posY;
 var grpId = 1;
 var gameOver = false;
