@@ -425,7 +425,7 @@ function onClick(evt) {
          innerClick = true;
        }
     }
-    if (!innerClick && circleGrps.length < 2) {
+    if (!innerClick && circleGrps.length < 3) {
       circle = {x: pX, y: pY, r: 1, speed: circleSpd, acceleration: circleAcc, pnts: [], ngls: [], inner: false, id: grpId++, clicks: 0}
       circles.push(circle);
       
