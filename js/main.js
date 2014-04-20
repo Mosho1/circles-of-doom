@@ -291,8 +291,8 @@ function checkCollisions() {
 
         }
 
-    //run collision detection for enemies and base
-    checkCollision.box(pos, size, base[0].pos.add(new Vector(90,75)), [base[0].sprite.size[0]/4, base[0].sprite.size[1]/4], -1000, i)
+      //run collision detection for enemies and base
+      checkCollision.circle(pos, size, [WIDTH/2, HEIGHT/2], base[0].sprite.size[0]/2.3, -1000, i)
 
     }
 
@@ -310,7 +310,7 @@ function update(dt) {
 
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
-    if(Math.random() < 1 - Math.pow(0.996, gameTime)) {
+    if(Math.random() < 0.5 *  (1 - Math.pow(0.996, gameTime))) {
         var t = Math.random() * (HEIGHT*2 + WIDTH*2),
             pos = t < HEIGHT + WIDTH ? t < HEIGHT ? new Vector(t, 0) : new Vector(0, t - WIDTH) : t < HEIGHT*2 + WIDTH ? new Vector(t - HEIGHT*2, HEIGHT) : new Vector(WIDTH, t - WIDTH*2 - HEIGHT),
             direction = (new Vector(WIDTH/2, HEIGHT/2)).sub(pos).normalize(),
@@ -345,7 +345,7 @@ function drawFancyCircles(x,y,r,start,end) {
 
     //drawCircle.stroke(x,y,Math.max(0, r/4*Math.sin(r/80)),0,0, 'rgba(0,220,0,1)', 4)
 
-    drawCircle.stroke(x,y,r,start,end, 0, 3); 
+    drawCircle.stroke(x,y,r,start,end, 0, 5); 
 
 }
 
@@ -409,6 +409,15 @@ function drawNextFrame() {
   else if (!isPaused) scoreEl.text('Game over, noob');
 }
 
+function createBase() {
+  var sprite = new Sprite('img/earth.png', [0, 0], [300, 300] );
+  base.push({
+    pos: new Vector(WIDTH/2 - sprite.size[0]/2, HEIGHT/2 - sprite.size[1]/2),
+    sprite: sprite
+  });
+
+}
+
 function init() {
   $('#canvas').click(onClick);
   posX = $('#canvas').offset().left;
@@ -420,10 +429,7 @@ function init() {
   frame = new Vector(WIDTH, HEIGHT);
   terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
   firePattern = ctx.createPattern(resources.get('img/lightning.jpg'), 'repeat');
-  base.push({
-    pos: new Vector(WIDTH/2 - 140, HEIGHT/2 - 150),
-    sprite: new Sprite('img/earth.png', [0, 0], [500, 500] )
-  });
+  createBase();
 
   lastTime = Date.now();
 
@@ -441,8 +447,8 @@ function onClick(evt) {
           for (var j = 0; j < circles.length; j++) {
               c2 = circles[j];
               if (c2.group === c.group && c2.speed < circleSpd/2) {
-                 c2.acceleration = -0.02;
-                 c2.speed = 1; 
+                 c2.acceleration = circleAcc/2;
+                 c2.speed = circleSpd/2; 
                }
           }
          innerClick = true;
