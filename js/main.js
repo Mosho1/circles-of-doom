@@ -45,19 +45,30 @@ var linearScale = function(source, target) {
   };
 }
 
- 
-function drawCircle(x,y,r,start,end) {
 
-  start = start || 0;
-  end = end || Math.PI * 2;
+var drawCircle = {
+  stroke: function(x,y,r,start,end,style,width) {
 
-  ctx.beginPath();
-  ctx.lineWidth=2;
-  ctx.arc(x, y, r, start, end);
-  ctx.strokeStyle = firePattern;
-  ctx.stroke();
+    start = start || 0;
+    end = end || Math.PI * 2;
 
+    ctx.beginPath();
+    ctx.lineWidth=width;
+    ctx.arc(x, y, r, start, end);
+    ctx.strokeStyle = style || firePattern;
+    ctx.stroke();
+
+  },
+  fill: function(x,y,r,style) {
+
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = style || firePattern;
+    ctx.fill();
+
+  },
 }
+ 
 
 
 
@@ -330,6 +341,14 @@ function isBetween(a, b, c) {
   return (b < c && (c < a || a < b)) || (c < a && b > a);
 }
 
+function drawFancyCircles(x,y,r,start,end) {
+
+    //drawCircle.stroke(x,y,Math.max(0, r/4*Math.sin(r/80)),0,0, 'rgba(0,220,0,1)', 4)
+
+    drawCircle.stroke(x,y,r,start,end, 0, 3); 
+
+}
+
 function renderCircles(circles) {
   var c, i, j, ngl;
   for (i = 0; i < circles.length; i++) {
@@ -338,10 +357,10 @@ function renderCircles(circles) {
       for (j = 0; j < c.ngls.length; j++) {
         var ng = c.ngls[j],
             ng2 = c.ngls[(j + 1) % c.ngls.length][1];
-        drawCircle(c.x, c.y, c.r, ng[0], ng2);  
+        drawFancyCircles(c.x, c.y, c.r, ng[0], ng2);  
       }
     } else {
-      drawCircle(c.x, c.y, c.r);  
+      drawFancyCircles(c.x, c.y, c.r);  
     }
     
 
@@ -351,15 +370,6 @@ function renderCircles(circles) {
 function renderEntities(list) {
     for(var i=0; i<list.length; i++) {
         renderEntity(list[i]);
-              if (list[i].center) {
-        ctx.save();
-    ctx.beginPath();
-    var awd = list[i].pos.sub(list[i].center);
-    ctx.arc(awd.x, awd.y , 5, 0, Math.PI*2);
-    ctx.fillStyle = 'red';
-    ctx.fill();
-    ctx.restore();
-}
     }    
 }
 
@@ -372,7 +382,7 @@ function renderEntity(entity) {
 }
 
 function render() {
-  ctx.fillStyle = terrainPattern;
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
 
@@ -385,8 +395,7 @@ function render() {
 function drawNextFrame() {
   var now = Date.now();
   var dt = (now - lastTime) / 1000.0;
-  clear();
-
+  
   update(dt);
   render();
 
@@ -410,10 +419,10 @@ function init() {
   HEIGHT = $("#canvas").height()
   frame = new Vector(WIDTH, HEIGHT);
   terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
-  firePattern = ctx.createPattern(resources.get('img/fire.png'), 'repeat');
+  firePattern = ctx.createPattern(resources.get('img/lightning.jpg'), 'repeat');
   base.push({
-    pos: new Vector(WIDTH/2 - 110, HEIGHT/2 - 87.5),
-    sprite: new Sprite('img/base.gif', [35, 60], [220, 175] )
+    pos: new Vector(WIDTH/2 - 140, HEIGHT/2 - 150),
+    sprite: new Sprite('img/earth.png', [0, 0], [500, 500] )
   });
 
   lastTime = Date.now();
@@ -466,6 +475,9 @@ resources.load([
     'img/sprites.png',
     'img/terrain.png',
     'img/fire.png',
-    'img/base.gif'
+    'img/base.gif',
+    'img/earth.jpg',
+    'img/earth.png',
+    'img/lightning.jpg'
 ]);
 resources.onReady(init);
