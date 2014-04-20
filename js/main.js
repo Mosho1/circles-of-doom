@@ -349,7 +349,7 @@ function drawFancyCircles(x,y,r,start,end) {
 
     //drawCircle.stroke(x,y,Math.max(0, r/4*Math.sin(r/80)),0,0, 'rgba(0,220,0,1)', 4)
 
-    drawCircle.stroke(x,y,r,start,end, 0, 5); 
+    drawCircle.stroke(x,y,r,start,end, 0, 3); 
 
 }
 
@@ -386,7 +386,8 @@ function renderEntity(entity) {
 }
 
 function render() {
-  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  
+  ctx.fillStyle = 'rgba(0,0,0,0.11)';
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
 
@@ -431,7 +432,9 @@ function init() {
   ctx = canvas.getContext("2d");
   scoreEl = document.getElementById('score');
   WIDTH = canvas.width;
-  HEIGHT = canvas.height
+  HEIGHT = canvas.height;
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
   frame = new Vector(WIDTH, HEIGHT);
   terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
   firePattern = ctx.createPattern(resources.get('img/lightning.jpg'), 'repeat');
