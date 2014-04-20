@@ -225,16 +225,18 @@ function destroyEntity(pos, i) {
 
    // Remove the enemy
         enemies.splice(i, 1);
-        // Add an explosion
-        explosions.push({
-            pos: pos,
-            sprite: new Sprite('img/sprites.png',
+
+        var sprite = new Sprite('img/sprites.png',
                                [0, 117],
                                [39, 39],
                                16,
                                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
                                null,
-                               true)
+                               true);
+        // Add an explosion
+        explosions.push({
+            pos: pos.sub(new Vector(sprite.size[0]/2, sprite.size[1]/2)),
+            sprite: sprite
         });
 }
 
