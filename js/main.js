@@ -19,7 +19,7 @@ var enemySpeed = 20;
 var circleSpd = 3;
 var circleAcc = -0.05;
 var maxAcc = -0.025;
-var score = 0;
+var score = 124513253215252;
 var posX, posY;
 var grpId = 1;
 var gameOver = false;
@@ -244,7 +244,6 @@ var checkCollision = {
         // Remove the enemy
         if (i !== undefined) {
           destroyEntity(pos , i);
-          console.log(size);
         }
         // Add score
         score += pnts;
@@ -280,7 +279,7 @@ function checkCollisions() {
         }
 
     //run collision detection for enemies and base
-    checkCollision.box(pos, size, base[0].pos.add(new Vector(100,100)), [base[0].sprite.size[0]/4, base[0].sprite.size[1]/4], -1000, i)
+    checkCollision.box(pos, size, base[0].pos.add(new Vector(90,75)), [base[0].sprite.size[0]/4, base[0].sprite.size[1]/4], -1000, i)
 
     }
 
@@ -298,14 +297,15 @@ function update(dt) {
 
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
-    if(Math.random() < 1 - Math.pow(.997, gameTime)) {
+    if(Math.random() < 1 - Math.pow(0.996, gameTime)) {
         var t = Math.random() * (HEIGHT*2 + WIDTH*2),
             pos = t < HEIGHT + WIDTH ? t < HEIGHT ? new Vector(t, 0) : new Vector(0, t - WIDTH) : t < HEIGHT*2 + WIDTH ? new Vector(t - HEIGHT*2, HEIGHT) : new Vector(WIDTH, t - WIDTH*2 - HEIGHT),
             direction = (new Vector(WIDTH/2, HEIGHT/2)).sub(pos).normalize(),
             angle = Math.atan(direction.y/direction.x) + (direction.x < 0 ? 0 : Math.PI),
             sprite = new Sprite('img/sprites.png', [0, 78], [80, 39],
                                6, [0, 1, 2, 3, 2, 1]),
-            center = new Vector(sprite.size[0] * direction.x / 2, sprite.size[1] * direction.y / 2);
+            center = direction.multiply(sprite.size[0]).add(direction.perpen().multiply(sprite.size[1])).divide(2);
+            
          
         enemies.push({
             pos: pos,
@@ -341,6 +341,8 @@ function renderCircles(circles) {
     } else {
       drawCircle(c.x, c.y, c.r);  
     }
+    
+
   };
 }
 

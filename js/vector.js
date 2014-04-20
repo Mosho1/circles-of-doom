@@ -47,16 +47,18 @@
 			return this;
 		},
 		multiply : function(s){
-			this.x *= s;
-			this.y *= s;
-			this.z *= s;
-			return this;
+			var ret = new Vector(this);
+			ret.x *= s;
+			ret.y *= s;
+			ret.z *= s;
+			return ret;
 		},
 		divide : function(s){
-			this.x /= s;
-			this.y /= s;
-			this.z /= s;
-			return this;
+			var ret = new Vector(this);
+			ret.x /= s;
+			ret.y /= s;
+			ret.z /= s;
+			return ret;
 		},
 		distanceTo : function(v){
 			this.dx = this.x - v.x;
@@ -109,6 +111,13 @@
 		
 		toString : function(){
 			return '(' + this.x + ', ' + this.y + ', ' + this.z + ')';
+		},
+		perpen : function(){
+		    var ret = new Vector();
+			ret.x = -this.y;
+			ret.y = this.x;
+			ret.z = 0;
+			return ret;
 		}
 		
 	};
