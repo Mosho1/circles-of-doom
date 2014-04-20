@@ -15,13 +15,15 @@ var terrainPattern;
 var firePattern;
 var gameTime = 0;
 var lastTime = 0;
-var enemySpeed = 50;
-var circleSpd = 5;
-var circleAcc = -0.1;
-var score = 0;
+var enemySpeed = 20;
+var circleSpd = 3;
+var circleAcc = -0.05;
+var maxAcc = -0.025;
+var score = 1242141415125;
 var posX, posY;
-var grpId = 0;
+var grpId = 1;
 var gameOver = false;
+var circleGrps = [];
 
 function distance(x1, y1, x2, y2) {
 
@@ -51,7 +53,6 @@ function drawCircle(x,y,r,start,end) {
 
   ctx.beginPath();
   ctx.lineWidth=2;
- // console.log(start,end);
   ctx.arc(x, y, r, start, end);
   ctx.strokeStyle = firePattern;
   ctx.stroke();
@@ -74,11 +75,15 @@ function updateCircles(circles) {
     
     if (c.r < 0) {
       circles.splice(i, 1);
-      return;
+      i--;
     }
 
       
   };
+
+  for (i = 0; i < circles.length; i++) {
+    circles[i].group = circles[i].id;  
+  }
   
 
   for (i = 0; i < circles.length; i++) {
@@ -93,9 +98,10 @@ function updateCircles(circles) {
             a = 1 + slope * slope,
             b = -2 * c1.x + 2 * slope * offset - 2 * slope * c1.y,
             c = c1.x * c1.x + offset * offset - 2 * offset * c1.y + c1.y * c1.y - c1.r * c1.r,
+            det = Math.sqrt(b * b - 4 * a * c);
         
-            x1 = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a),
-            x2 = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+            x1 = (-b + det) / (2 * a),
+            x2 = (-b - det) / (2 * a);
 
         if (x1 && x2) { 
         
@@ -103,7 +109,7 @@ function updateCircles(circles) {
               y2 = slope * x2 + offset;
           
 
-          if (c1.y - c2.y >= 0) {
+          if (c1.y > c2.y) {
             c1.pnts = [[x1, y1], [x2, y2]];
             c2.pnts = [[x2, y2], [x1, y1]]; 
           } else {
@@ -116,16 +122,25 @@ function updateCircles(circles) {
 
          
 
-          c1.group = c2.group = c1.group || c2.group || grpId++;
+          c1.group = c1.group || c2.group;
+          c2.group = c1.group;
 
-        } else { 
-          c1.group = c2.group = null;
         }
       }
     }
   };
 
+  
+
+  circleGrps = [];
   for (i = 0; i < circles.length; i++) {
+    if (circleGrps.indexOf(circles[i].group) < 0) {
+      circleGrps.push(circles[i].group)
+    }    
+  }
+console.log(circleGrps);
+  for (i = 0; i < circles.length; i++) {
+
     c = circles[i];
     if (c.ngls.length > 1) {
       c.ngls.sort(function(a, b) { return a[0] - b[0]; }) 
@@ -282,7 +297,7 @@ function update(dt) {
 
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
-    if(Math.random() < 1 - Math.pow(.993, gameTime)) {
+    if(Math.random() < 1 - Math.pow(.997, gameTime)) {
         var t = Math.random() * (HEIGHT*2 + WIDTH*2),
             pos = t < HEIGHT + WIDTH ? t < HEIGHT ? new Vector(t, 0) : new Vector(0, t - WIDTH) : t < HEIGHT*2 + WIDTH ? new Vector(t - HEIGHT*2, HEIGHT) : new Vector(WIDTH, t - WIDTH*2 - HEIGHT),
             direction = (new Vector(WIDTH/2, HEIGHT/2)).sub(pos).normalize(),
@@ -393,32 +408,30 @@ function init() {
 }
 
 function onClick(evt) {
-  if (circles.length < 10) {
     var innerClick = false, dist, circle,
         pX = evt.pageX-5-posX, pY = evt.pageY-5-posY; 
     for (var i = 0; i < circles.length; i++) {
        c = circles[i];
        dist = (c.x - pX) * (c.x - pX) + (c.y -  pY) * (c.y -  pY);  
        if (c.r * c.r > dist) {
-         if (c.speed < circleSpd/2) c.speed = circleSpd/2; 
-         if (c.group) {
-            for (var j = 0; j < circles.length; j++) {
-                c2 = circles[j];
-                if (c2.group === c.group && c2.speed < circleSpd/2)
-                   c2.speed = circleSpd/2; 
-            }
-
-         }
+          c.clicks++;
+          for (var j = 0; j < circles.length; j++) {
+              c2 = circles[j];
+              if (c2.group === c.group && c2.speed < circleSpd/2) {
+                 c2.acceleration = -0.02;
+                 c2.speed = 1; 
+               }
+          }
          innerClick = true;
        }
     }
-    if (!innerClick) {
-      circle = {x: pX, y: pY, r: 1, speed: circleSpd, acceleration: circleAcc, pnts: [], ngls: [], inner: false}
+    if (!innerClick && circleGrps.length < 2) {
+      circle = {x: pX, y: pY, r: 1, speed: circleSpd, acceleration: circleAcc, pnts: [], ngls: [], inner: false, id: grpId++, clicks: 0}
       circles.push(circle);
       
     }
      
-  }
+  
 }
 
 
