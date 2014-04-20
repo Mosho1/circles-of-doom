@@ -19,7 +19,7 @@ var enemySpeed = 20;
 var circleSpd = 3;
 var circleAcc = -0.05;
 var maxAcc = -0.025;
-var score = 0;
+var score = 1232132133213;
 var posX, posY;
 var grpId = 1;
 var gameOver = false;
@@ -386,7 +386,7 @@ function render() {
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
 
-  renderEntities(base)
+  renderEntities(base);
   renderCircles(circles);
   renderEntities(enemies);
   renderEntities(explosions);

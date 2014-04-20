@@ -5,14 +5,9 @@ html, body {
 }
 
 canvas {
-    display: block;
-    margin: auto;
+    margin: 50px;
+   
 
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
 }
 
 .wrapper {
@@ -22,12 +17,16 @@ canvas {
 }
 
 #instructions {
+    margin:10px;
     float: left;
     font-family: sans-serif;
     color: #757575;
+    display: block;
 }
 
 #score {
+    margin: 20px;
+    font-family: sans-serif;
     float: right;
     color: white;
     font-size: 2em;
