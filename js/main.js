@@ -17,7 +17,7 @@ var gameTime = 0;
 var lastTime = 0;
 var enemySpeed = 20;
 var circleSpd = 3;
-var circleAcc = -0.05;
+var circleAcc = -0.025;
 var maxAcc = -0.025;
 var score = 124513253215252;
 var posX, posY;
@@ -351,6 +351,15 @@ function renderCircles(circles) {
 function renderEntities(list) {
     for(var i=0; i<list.length; i++) {
         renderEntity(list[i]);
+              if (list[i].center) {
+        ctx.save();
+    ctx.beginPath();
+    var awd = list[i].pos.sub(list[i].center);
+    ctx.arc(awd.x, awd.y , 5, 0, Math.PI*2);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+    ctx.restore();
+}
     }    
 }
 
